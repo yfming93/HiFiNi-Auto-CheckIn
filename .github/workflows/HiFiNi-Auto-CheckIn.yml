@@ -11,8 +11,8 @@ on:
 jobs:
   build:
     env:
-      COOKIE: ${{ secrets.COOKIE }}
-      SERVER_CHAN: ${{ secrets.SERVER_CHAN }}
+      COOKIE: "bbs_sid=8o6rk2oagb88abk9g8jrgb4mf0; Hm_lvt_23819a3dd53d3be5031ca942c6cbaf25=1762436911; HMACCOUNT=25F9049004D86C0D; bbs_token=si0yaWEunuGlFnGo01sIMZw1Wzm1FJmGgp9KcDcvoaF_2B0im9srNmkwrH6NJC5Sa4GNZH4Qa88w4nI9q6NkzBRZb_2BbFs_3D; Hm_lpvt_23819a3dd53d3be5031ca942c6cbaf25=1762477668"
+      SERVER_CHAN: "SCT301782T5pl5qKqGpBVSIpceSCjBQt47"
       DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
       WXWORK_WEBHOOK: ${{ secrets.WXWORK_WEBHOOK }}
       TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
