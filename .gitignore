@@ -111,3 +111,6 @@ fabric.properties
 
 .omc
 
+__pycache__/
+*.pyc
+
