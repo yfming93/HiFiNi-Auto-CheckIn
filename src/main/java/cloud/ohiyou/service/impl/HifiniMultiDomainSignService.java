@@ -89,7 +89,7 @@ public class HifiniMultiDomainSignService implements ISignService {
                 if (result != null) {
                     this.workingDomain = baseUrl;
                     this.activeCookie = cookieToUse;
-                    logger.info("域名 [{}] 签到完成, 响应: {}", baseUrl, result.getMess());
+                    logger.info("域名 [{}] 签到完成, 响应: {}", baseUrl, result.getMessage());
                     return result;
                 }
 
@@ -133,10 +133,7 @@ public class HifiniMultiDomainSignService implements ISignService {
             try {
                 return JSON.parseObject(responseBody, SignResultVO.class);
             } catch (Exception parseException) {
-                SignResultVO fallbackVO = new SignResultVO();
-                fallbackVO.setCode(0);
-                fallbackVO.setMess(responseBody);
-                return fallbackVO;
+                return new SignResultVO(0, responseBody);
             }
         }
     }
@@ -167,6 +164,7 @@ public class HifiniMultiDomainSignService implements ISignService {
         try {
             FormBody formBody = new FormBody.Builder()
                     .add("email", username)
+                    .add("account", username)
                     .add("password", passValue)
                     .build();
 
@@ -177,29 +175,25 @@ public class HifiniMultiDomainSignService implements ISignService {
                     .addHeader("X-Requested-With", "XMLHttpRequest")
                     .addHeader("Referer", loginUrl)
                     .addHeader("Accept", "application/json, text/javascript, */*; q=0.01")
+                    .addHeader("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
+                    .addHeader("Connection", "keep-alive")
                     .build();
 
             try (Response response = client.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    return null;
-                }
-
                 List<String> setCookies = response.headers("Set-Cookie");
-                if (setCookies == null || setCookies.isEmpty()) {
-                    return null;
-                }
-
-                List<String> cookieParts = new ArrayList<>();
-                for (String setCookie : setCookies) {
-                    String[] parts = setCookie.split(";");
-                    if (parts.length > 0) {
-                        cookieParts.add(parts[0].trim());
+                if (setCookies != null && !setCookies.isEmpty()) {
+                    List<String> cookieParts = new ArrayList<>();
+                    for (String setCookie : setCookies) {
+                        String[] parts = setCookie.split(";");
+                        if (parts.length > 0) {
+                            cookieParts.add(parts[0].trim());
+                        }
                     }
+                    String cookieStr = String.join("; ", cookieParts);
+                    logger.info("模拟登录请求成功，获取 Cookie: {}", cookieStr);
+                    return cookieStr;
                 }
-
-                String cookieStr = String.join("; ", cookieParts);
-                logger.info("模拟登录请求成功，获取 Cookie: {}", cookieStr);
-                return cookieStr;
+                return null;
             }
         } catch (Exception e) {
             logger.debug("登录请求 [{}] 抛出异常: {}", loginUrl, e.getMessage());

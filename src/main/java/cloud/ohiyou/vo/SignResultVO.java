@@ -28,6 +28,9 @@ public class SignResultVO {
      */
     private UserInfoVO userInfo;
 
+    public SignResultVO() {
+    }
+
     public SignResultVO(Integer code, String message) {
         this.code = code;
         this.message = message;

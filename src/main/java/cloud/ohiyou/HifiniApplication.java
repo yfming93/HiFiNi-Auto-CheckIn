@@ -46,10 +46,10 @@ public class HifiniApplication {
                 ISignService multiDomainService = new cloud.ohiyou.service.impl.HifiniMultiDomainSignService(
                         config.getDomains(), config.getUsername(), config.getPassword());
                 
-                // 若配置了额外 Cookie 则也传入，否则使用空字符串驱动账号密码登录
-                String initialCookie = config.getHifihiCookie() != null ? config.getHifihiCookie() : "";
+                String initialCookie = config.getHifihiCookie();
+                String cookiesToPass = (initialCookie != null && !initialCookie.trim().isEmpty()) ? initialCookie : "AUTO_LOGIN";
                 List<CookieSignResult> multiResults = executeSignIn(
-                        initialCookie, multiDomainService, cookieHandler, executor, "HiFiNi");
+                        cookiesToPass, multiDomainService, cookieHandler, executor, "HiFiNi");
                 allResults.addAll(multiResults);
             }
 

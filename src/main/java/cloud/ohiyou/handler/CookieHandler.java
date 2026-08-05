@@ -32,6 +32,10 @@ public class CookieHandler {
             return Optional.empty();
         }
 
+        if ("AUTO_LOGIN".equalsIgnoreCase(cookie.trim())) {
+            return Optional.of(cookie.trim());
+        }
+
         String bbsSid = null;
         String bbsToken = null;
 
@@ -52,10 +56,8 @@ public class CookieHandler {
             return Optional.of(bbsSid + ";" + bbsToken + ";");
         }
 
-        logger.error("解析第 {} 个cookie失败，格式不正确。缺少: {}",
-                index + 1,
-                bbsSid == null ? HifiniConstants.COOKIE_KEY_BBS_SID : HifiniConstants.COOKIE_KEY_BBS_TOKEN);
-        return Optional.empty();
+        logger.info("使用全量/自定义 Cookie 进行签名操作: {}", cookie);
+        return Optional.of(cookie);
     }
 
     /**
