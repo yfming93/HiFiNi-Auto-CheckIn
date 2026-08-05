@@ -131,7 +131,12 @@ public class HifiniMultiDomainSignService implements ISignService {
             String responseBody = ResponseUtils.readResponse(response);
             logger.info("站点 [{}] 签到响应内容: {}", baseUrl, responseBody);
             try {
-                return JSON.parseObject(responseBody, SignResultVO.class);
+                SignResultVO resultVO = JSON.parseObject(responseBody, SignResultVO.class);
+                if (resultVO != null && resultVO.getMessage() != null && resultVO.getMessage().contains("请登录")) {
+                    resultVO.setCode(2);
+                    resultVO.setMessage("站点提示需登录态：请在 GitHub Secrets 配置 HIFIHI_COOKIE 字段");
+                }
+                return resultVO;
             } catch (Exception parseException) {
                 return new SignResultVO(0, responseBody);
             }

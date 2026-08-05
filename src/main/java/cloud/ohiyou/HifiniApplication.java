@@ -40,18 +40,20 @@ public class HifiniApplication {
             // 可选的凌晨随机等待（防止集中整点打卡触发风控）
             applyRandomDelay();
 
-            // 1. 通用多域名（hifihi.com / hifini.net / hifini.com.cn）切用自动签到
-            if (config.getUsername() != null && !config.getUsername().trim().isEmpty()) {
-                logger.info("===== 通用站点多域名自动登录签到开始 (账号: {}) =====", config.getUsername());
-                ISignService multiDomainService = new cloud.ohiyou.service.impl.HifiniMultiDomainSignService(
-                        config.getDomains(), config.getUsername(), config.getPassword());
-                
-                String initialCookie = config.getHifihiCookie();
-                String cookiesToPass = (initialCookie != null && !initialCookie.trim().isEmpty()) ? initialCookie : "AUTO_LOGIN";
-                List<CookieSignResult> multiResults = executeSignIn(
-                        cookiesToPass, multiDomainService, cookieHandler, executor, "HiFiNi");
-                allResults.addAll(multiResults);
+            // 1. 通用多域名（hifini.com / hifihi.com / hifini.net / hifini.com.cn）切用自动签到
+            String hifihiCookie = config.getHifihiCookie();
+            if (hifihiCookie == null || hifihiCookie.trim().isEmpty()) {
+                hifihiCookie = config.getCookie();
             }
+
+            logger.info("===== 通用站点多域名自动签到开始 (账号: {}) =====", config.getUsername());
+            ISignService multiDomainService = new cloud.ohiyou.service.impl.HifiniMultiDomainSignService(
+                    config.getDomains(), config.getUsername(), config.getPassword());
+            
+            String cookiesToPass = (hifihiCookie != null && !hifihiCookie.trim().isEmpty()) ? hifihiCookie : "AUTO_LOGIN";
+            List<CookieSignResult> multiResults = executeSignIn(
+                    cookiesToPass, multiDomainService, cookieHandler, executor, "HiFiNi");
+            allResults.addAll(multiResults);
 
             // 2. 兼容老的 HiFiTi 站点独立 Cookie 签到（若有配置）
             String hifitiCookies = config.getCookie();
