@@ -26,10 +26,10 @@ public final class HifiniConstants {
 
     // ==================== 通用多域名配置 ====================
     public static final List<String> COMMON_DOMAINS = Arrays.asList(
+            "https://www.hifini.com.cn",
             "https://www.hifini.com",
             "https://www.hifihi.com",
-            "https://www.hifini.net",
-            "https://www.hifini.com.cn"
+            "https://www.hifini.net"
     );
     public static final String LOGIN_PATH = "/user-login.htm";
     public static final String SIGN_PATH = "/sg_sign.htm";

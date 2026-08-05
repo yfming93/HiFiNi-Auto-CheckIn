@@ -156,21 +156,22 @@ public class HifiniMultiDomainSignService implements ISignService {
         String md5Password = DigestUtils.md5Hex(password);
 
         // 先尝试 MD5 密码提交
-        String cookieResult = tryLoginPost(loginUrl, username, md5Password, userAgent);
+        String cookieResult = tryLoginPost(baseUrl, loginUrl, username, password, userAgent);
         if (cookieResult != null && !cookieResult.isEmpty()) {
             return cookieResult;
         }
-
-        // 若 MD5 失败，再尝试明文密码提交
-        return tryLoginPost(loginUrl, username, password, userAgent);
+        return null;
     }
 
-    private String tryLoginPost(String loginUrl, String username, String passValue, String userAgent) {
+    private String tryLoginPost(String baseUrl, String loginUrl, String account, String password, String userAgent) {
         try {
+            // 采用精准抓包入参格式: email={account}&password={md5(password)}
+            String md5Password = DigestUtils.md5Hex(password);
+            logger.info("域名 [{}] 尝试使用账号 [{}] 与密码 MD5 [{}] 执行登录...", baseUrl, account, md5Password);
+            
             FormBody formBody = new FormBody.Builder()
-                    .add("email", username)
-                    .add("account", username)
-                    .add("password", passValue)
+                    .add("email", account)
+                    .add("password", md5Password)
                     .build();
 
             Request request = new Request.Builder()
@@ -185,18 +186,30 @@ public class HifiniMultiDomainSignService implements ISignService {
                     .build();
 
             try (Response response = client.newCall(request).execute()) {
-                List<String> setCookies = response.headers("Set-Cookie");
-                if (setCookies != null && !setCookies.isEmpty()) {
-                    List<String> cookieParts = new ArrayList<>();
-                    for (String setCookie : setCookies) {
-                        String[] parts = setCookie.split(";");
-                        if (parts.length > 0) {
-                            cookieParts.add(parts[0].trim());
+                Headers headers = response.headers();
+                List<String> setCookies = headers.values("Set-Cookie");
+                java.util.Map<String, String> cookieMap = new java.util.HashMap<>();
+                for (String c : setCookies) {
+                    String pair = c.split(";")[0];
+                    int idx = pair.indexOf("=");
+                    if (idx > 0) {
+                        String key = pair.substring(0, idx).trim();
+                        String val = pair.substring(idx + 1).trim();
+                        if (!"deleted".equalsIgnoreCase(val)) {
+                            cookieMap.put(key, val);
                         }
                     }
-                    String cookieStr = String.join("; ", cookieParts);
-                    logger.info("模拟登录请求成功，获取 Cookie: {}", cookieStr);
-                    return cookieStr;
+                }
+
+                StringBuilder sb = new StringBuilder();
+                for (java.util.Map.Entry<String, String> entry : cookieMap.entrySet()) {
+                    sb.append(entry.getKey()).append("=").append(entry.getValue()).append("; ");
+                }
+                String cookie = sb.toString().trim();
+
+                if (cookieMap.containsKey("bbs_token") && !cookieMap.get("bbs_token").isEmpty()) {
+                    logger.info("模拟登录成功，获取有效 Cookie: {}", cookie);
+                    return cookie;
                 }
                 return null;
             }
