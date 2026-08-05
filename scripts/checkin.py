@@ -114,6 +114,27 @@ def run_checkin():
                     }}
                 """)
                 print(f"登录接口响应结果: {login_result}")
+
+                # 若因密码大小写失败，自动尝试首字母变写
+                if login_result.get("code") != 0 and login_result.get("code") != "0":
+                    alt_pass = (PASSWORD[0].upper() if PASSWORD[0].islower() else PASSWORD[0].lower()) + PASSWORD[1:]
+                    alt_md5 = get_md5(alt_pass)
+                    print(f"尝试使用密码首字母纠错值 (password={alt_pass}, MD5={alt_md5}) 再次登录...")
+                    login_result = page.evaluate(f"""
+                        async () => {{
+                            return new Promise((resolve) => {{
+                                if (typeof $ !== 'undefined' && $.xpost) {{
+                                    $.xpost('user-login.htm', {{email: '{USERNAME}', password: '{alt_md5}'}}, function(code, message) {{
+                                        resolve({{code: code, message: message}});
+                                    }});
+                                }} else {{
+                                    resolve({{code: -1, message: 'jQuery or $.xpost not found'}});
+                                }}
+                            }});
+                        }}
+                    """)
+                    print(f"纠错登录接口响应结果: {login_result}")
+
                 time.sleep(3)
 
                 # 如果 $.xpost 没找到，则回退到常规表单输入

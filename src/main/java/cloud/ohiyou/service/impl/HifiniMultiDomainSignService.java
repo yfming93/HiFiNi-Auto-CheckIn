@@ -160,7 +160,28 @@ public class HifiniMultiDomainSignService implements ISignService {
         if (cookieResult != null && !cookieResult.isEmpty()) {
             return cookieResult;
         }
+
+        // 密码首字母自动纠错重试 (解决 GitHub Secrets 填错大小写问题)
+        String altPassword = toggleFirstCase(password);
+        if (!altPassword.equals(password)) {
+            logger.info("域名 [{}] 尝试使用首字母自动纠错密码执行重试登录...", baseUrl);
+            cookieResult = tryLoginPost(baseUrl, loginUrl, username, altPassword, userAgent);
+            if (cookieResult != null && !cookieResult.isEmpty()) {
+                return cookieResult;
+            }
+        }
         return null;
+    }
+
+    private String toggleFirstCase(String str) {
+        if (str == null || str.isEmpty()) return str;
+        char first = str.charAt(0);
+        if (Character.isLowerCase(first)) {
+            return Character.toUpperCase(first) + str.substring(1);
+        } else if (Character.isUpperCase(first)) {
+            return Character.toLowerCase(first) + str.substring(1);
+        }
+        return str;
     }
 
     private String tryLoginPost(String baseUrl, String loginUrl, String account, String password, String userAgent) {

@@ -68,9 +68,9 @@ public final class OkHttpUtils {
                 .protocols(java.util.Collections.singletonList(okhttp3.Protocol.HTTP_1_1))
                 .followRedirects(true)
                 .followSslRedirects(true)
-                .connectTimeout(15, TimeUnit.SECONDS)
-                .readTimeout(15, TimeUnit.SECONDS)
-                .writeTimeout(15, TimeUnit.SECONDS)
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
                 .build();
     }
 
