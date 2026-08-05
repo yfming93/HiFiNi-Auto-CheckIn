@@ -40,19 +40,5 @@ jobs:
           mvn clean compile exec:java \
           -Dexec.mainClass="cloud.ohiyou.HifiniApplication" \
           -Dexec.cleanupDaemonThreads=false
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-        continue-on-error: true
-      - name: Install Playwright Dependencies
-        run: |
-          pip install playwright requests
-          playwright install --with-deps chromium
-        continue-on-error: true
-      - name: Run Full Auto Playwright CheckIn Backup
-        run: |
-          python scripts/checkin.py
-        continue-on-error: true
     permissions:
       contents: read    # 允许 checkout 代码   
