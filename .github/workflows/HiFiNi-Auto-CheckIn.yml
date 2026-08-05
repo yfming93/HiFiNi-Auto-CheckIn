@@ -27,6 +27,7 @@ jobs:
       TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
       GOTIFY_URL: ${{ secrets.GOTIFY_URL }}
       GOTIFY_APP_TOKEN: ${{ secrets.GOTIFY_APP_TOKEN }}
+      PROXY_WORKER_URL: ${{ secrets.PROXY_WORKER_URL }}
     runs-on: ubuntu-latest
 
     steps:
