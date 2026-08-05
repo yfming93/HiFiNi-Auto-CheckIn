@@ -83,7 +83,9 @@ public class ResultPublisher {
             }
         }
 
-        String title = allSuccess ? "自动签到成功" : "自动签到失败";
+        String siteName = "HiFiNi 磁场 (hifini.com.cn)";
+        String statusText = allSuccess ? "自动签到成功通知" : "自动签到失败通知";
+        String title = siteName + " " + statusText;
         messageBuilder.append(String.format("\n签到统计: %d/%d 成功", successCount, totalCount));
 
         return new PublishContent(title, messageBuilder.toString(), successCount, totalCount);

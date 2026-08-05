@@ -200,12 +200,11 @@ def run_checkin():
         browser.close()
 
     # 发送 WxPusher 推送通知
-    title = f"HiFiNi 自动签到提醒 - {sign_status}"
+    title = f"HiFiNi 磁场 (hifini.com.cn) 自动签到通知" if ("成功" in sign_status or "签过" in sign_status) else f"HiFiNi 磁场 (hifini.com.cn) 自动签到失败"
     msg_lines = [
-        f"尊敬的用户，您的 HiFiNi 自动签到结果如下：",
+        f"账号：{USERNAME}",
         f"",
-        f"• 登录账号：{USERNAME}",
-        f"• 成功站点：{success_domain if success_domain else '无可用站点'}",
+        f"• 站点域名：{success_domain if success_domain else 'https://www.hifini.com.cn'}",
         f"• 签到状态：{sign_status}",
         f"• 当前金币：{coins_info}",
         f"• 连续签到：{streak_info} 天" if streak_info != '未知' else f"• 连续签到：信息未抓取到"
