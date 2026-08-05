@@ -1,9 +1,9 @@
-/// @Author: 袁凤鸣
-/// @Date: 2026-08-05
-/// @LastEditors: 袁凤鸣
-/// @LastEditTime: 2026-08-05 15:52:00
-/// @FilePath: scripts/checkin.py
-/// @Description: 基于 Playwright 的全自动无头浏览器 HiFiNi 模拟登录签到与 WxPusher 推送脚本
+# @Author: 袁凤鸣
+# @Date: 2026-08-05
+# @LastEditors: 袁凤鸣
+# @LastEditTime: 2026-08-05 15:56:00
+# @FilePath: scripts/checkin.py
+# @Description: 基于 Playwright 的全自动无头浏览器 HiFiNi 模拟登录签到与 WxPusher 推送脚本
 
 import os
 import re
