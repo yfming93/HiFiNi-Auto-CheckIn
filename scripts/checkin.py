@@ -39,6 +39,11 @@ def push_wxpusher(title: str, content: str):
     except Exception as e:
         print(f"[WxPusher] 推送异常: {e}")
 
+import hashlib
+
+def get_md5(text: str) -> str:
+    return hashlib.md5(text.encode('utf-8')).hexdigest()
+
 def run_checkin():
     print(f"=== 开始全自动无头浏览器签到 (账号: {USERNAME}) ===")
     
@@ -50,6 +55,9 @@ def run_checkin():
         time.sleep(delay_mins * 60)
     else:
         print("手动触发模式：跳过随机休眠，立即开始全自动无头浏览器签到！")
+
+    password_md5 = get_md5(PASSWORD)
+    print(f"入参计算完成 -> email: {USERNAME}, password MD5: {password_md5}")
 
     sign_status = "签到失败"
     coins_info = "未知"
@@ -78,28 +86,43 @@ def run_checkin():
 
                 print(f"页面标题: {page.title()}")
 
-                # 2. 填充用户名和密码
-                if page.locator("#email").count() > 0:
-                    page.fill("#email", USERNAME)
-                elif page.locator("input[name='email']").count() > 0:
-                    page.fill("input[name='email']", USERNAME)
-                else:
-                    page.fill("input[type='text']", USERNAME)
+                # 2. 优先调用页面原生 $.xpost 执行抓包同款登录 (email + password_md5)
+                print(f"尝试使用抓包同款参数 (email={USERNAME}&password={password_md5}) 执行登录...")
+                login_result = page.evaluate(f"""
+                    async () => {{
+                        return new Promise((resolve) => {{
+                            if (typeof $ !== 'undefined' && $.xpost) {{
+                                $.xpost('user-login.htm', {{email: '{USERNAME}', password: '{password_md5}'}}, function(code, message) {{
+                                    resolve({{code: code, message: message}});
+                                }});
+                            }} else {{
+                                resolve({{code: -1, message: 'jQuery or $.xpost not found'}});
+                            }}
+                        }});
+                    }}
+                """)
+                print(f"登录接口响应结果: {login_result}")
+                time.sleep(3)
 
-                if page.locator("#password").count() > 0:
-                    page.fill("#password", PASSWORD)
-                else:
-                    page.fill("input[name='password']", PASSWORD)
+                # 如果 $.xpost 没找到，则回退到常规表单输入
+                if login_result.get("code") == -1:
+                    print("回退到无头浏览器 DOM 表单填充登录...")
+                    if page.locator("#email").count() > 0:
+                        page.fill("#email", USERNAME)
+                    else:
+                        page.fill("input[name='email']", USERNAME)
 
-                # 3. 点击登录提交按钮
-                submit_locator = page.locator("#submit")
-                if submit_locator.count() > 0:
-                    submit_locator.click()
-                else:
-                    page.click("button[type='submit']")
+                    if page.locator("#password").count() > 0:
+                        page.fill("#password", PASSWORD)
+                    else:
+                        page.fill("input[name='password']", PASSWORD)
 
-                print("提交登录表单中...")
-                time.sleep(4)
+                    submit_locator = page.locator("#submit")
+                    if submit_locator.count() > 0:
+                        submit_locator.click()
+                    else:
+                        page.click("button[type='submit']")
+                    time.sleep(4)
 
                 # 4. 在登录后的页面上下文直接调用原生 $.xpost('sg_sign.htm')
                 print("尝试调用页面原生 $.xpost('sg_sign.htm') 执行签到...")
