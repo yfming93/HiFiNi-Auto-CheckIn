@@ -63,6 +63,7 @@ public class HifiniMultiDomainSignService implements ISignService {
     @Override
     public SignResultVO signIn(String initialCookie) {
         this.activeCookie = initialCookie;
+        boolean hasExplicitCookie = initialCookie != null && !initialCookie.trim().isEmpty() && !"AUTO_LOGIN".equalsIgnoreCase(initialCookie);
 
         for (String domain : domainList) {
             String baseUrl = domain.trim();
@@ -74,7 +75,7 @@ public class HifiniMultiDomainSignService implements ISignService {
             try {
                 // 1. 检验已有 Cookie 或通过账号密码登录获取新 Cookie
                 String cookieToUse = activeCookie;
-                if (!isCookieValid(baseUrl, cookieToUse)) {
+                if (!hasExplicitCookie && !isCookieValid(baseUrl, cookieToUse)) {
                     logger.info("域名 [{}] 的当前 Cookie 无效或不存在，尝试使用账号密码 [{}] 登录...", baseUrl, username);
                     cookieToUse = loginAndGetCookie(baseUrl, username, password);
                 }
@@ -87,6 +88,19 @@ public class HifiniMultiDomainSignService implements ISignService {
                 // 2. 尝试该域名的签到
                 SignResultVO result = doSignIn(baseUrl, cookieToUse);
                 if (result != null) {
+                    // 若提示需要登录且当前非强制显式 Cookie，则尝试自动登录纠错一次
+                    if (result.getMessage() != null && result.getMessage().contains("请登录") && hasExplicitCookie) {
+                        logger.warn("配置的 HIFIHI_COOKIE 已失效，尝试降级为账号密码模拟登录...");
+                        String reloginCookie = loginAndGetCookie(baseUrl, username, password);
+                        if (reloginCookie != null && !reloginCookie.isEmpty()) {
+                            SignResultVO retryResult = doSignIn(baseUrl, reloginCookie);
+                            if (retryResult != null) {
+                                this.workingDomain = baseUrl;
+                                this.activeCookie = reloginCookie;
+                                return retryResult;
+                            }
+                        }
+                    }
                     this.workingDomain = baseUrl;
                     this.activeCookie = cookieToUse;
                     logger.info("域名 [{}] 签到完成, 响应: {}", baseUrl, result.getMessage());
@@ -156,7 +170,7 @@ public class HifiniMultiDomainSignService implements ISignService {
         String md5Password = DigestUtils.md5Hex(password);
 
         // 先尝试 MD5 密码提交
-        String cookieResult = tryLoginPost(baseUrl, loginUrl, username, password, userAgent);
+        String cookieResult = tryLoginPost(baseUrl, loginUrl, username, password, userAgent, false);
         if (cookieResult != null && !cookieResult.isEmpty()) {
             return cookieResult;
         }
@@ -165,7 +179,7 @@ public class HifiniMultiDomainSignService implements ISignService {
         String altPassword = toggleFirstCase(password);
         if (!altPassword.equals(password)) {
             logger.info("域名 [{}] 尝试使用首字母自动纠错密码执行重试登录...", baseUrl);
-            cookieResult = tryLoginPost(baseUrl, loginUrl, username, altPassword, userAgent);
+            cookieResult = tryLoginPost(baseUrl, loginUrl, username, altPassword, userAgent, false);
             if (cookieResult != null && !cookieResult.isEmpty()) {
                 return cookieResult;
             }
@@ -184,21 +198,22 @@ public class HifiniMultiDomainSignService implements ISignService {
         return str;
     }
 
-    private String tryLoginPost(String baseUrl, String loginUrl, String account, String password, String userAgent) {
+    private String tryLoginPost(String baseUrl, String loginUrl, String account, String password, String userAgent, boolean isRetry) {
         try {
-            // 采用精准抓包入参格式: email={account}&password={md5(password)}
             String md5Password = DigestUtils.md5Hex(password);
-            logger.info("域名 [{}] 尝试使用账号 [{}] 与密码 MD5 [{}] 执行登录...", baseUrl, account, md5Password);
+            logger.info("域名 [{}] 尝试使用账号 [{}] 与密码 MD5 [{}] 执行登录 (retry={})...", baseUrl, account, md5Password, isRetry);
             
             FormBody formBody = new FormBody.Builder()
                     .add("email", account)
                     .add("password", md5Password)
                     .build();
 
+            String finalUserAgent = isRetry ? "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" : userAgent;
+
             Request request = new Request.Builder()
                     .url(loginUrl)
                     .post(formBody)
-                    .addHeader("User-Agent", userAgent)
+                    .addHeader("User-Agent", finalUserAgent)
                     .addHeader("X-Requested-With", "XMLHttpRequest")
                     .addHeader("Referer", loginUrl)
                     .addHeader("Accept", "application/json, text/javascript, */*; q=0.01")
@@ -235,7 +250,12 @@ public class HifiniMultiDomainSignService implements ISignService {
                 return null;
             }
         } catch (Exception e) {
-            logger.debug("登录请求 [{}] 抛出异常: {}", loginUrl, e.getMessage());
+            String errMsg = e.getMessage() != null ? e.getMessage() : "";
+            logger.debug("登录请求 [{}] 抛出异常: {}", loginUrl, errMsg);
+            if (!isRetry && errMsg.contains("unexpected end of stream")) {
+                logger.warn("检测到 unexpected end of stream，正在切换至 Chrome User-Agent 重试...");
+                return tryLoginPost(baseUrl, loginUrl, account, password, userAgent, true);
+            }
             return null;
         }
     }
