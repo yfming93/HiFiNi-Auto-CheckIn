@@ -70,7 +70,7 @@ public class EnvConfig {
 
         String dMains = System.getenv("HIFINI_DOMAINS");
         if (dMains == null || dMains.trim().isEmpty()) {
-            dMains = "https://www.hifihi.com,https://www.hifini.net,https://www.hifini.com.cn";
+            dMains = "https://www.hifini.com,https://www.hifihi.com,https://www.hifini.net,https://www.hifini.com.cn";
         }
         domains = dMains;
     }

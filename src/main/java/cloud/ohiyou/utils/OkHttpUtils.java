@@ -65,9 +65,11 @@ public final class OkHttpUtils {
 
         return new OkHttpClient.Builder()
                 .dispatcher(new Dispatcher(executor))
-                .connectTimeout(HifiniConstants.DEFAULT_CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .readTimeout(HifiniConstants.DEFAULT_READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .writeTimeout(HifiniConstants.DEFAULT_WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .followRedirects(true)
+                .followSslRedirects(true)
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(10, TimeUnit.SECONDS)
+                .writeTimeout(10, TimeUnit.SECONDS)
                 .build();
     }
 

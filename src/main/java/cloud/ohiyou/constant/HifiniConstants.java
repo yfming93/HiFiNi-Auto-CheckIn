@@ -26,6 +26,7 @@ public final class HifiniConstants {
 
     // ==================== 通用多域名配置 ====================
     public static final List<String> COMMON_DOMAINS = Arrays.asList(
+            "https://www.hifini.com",
             "https://www.hifihi.com",
             "https://www.hifini.net",
             "https://www.hifini.com.cn"
