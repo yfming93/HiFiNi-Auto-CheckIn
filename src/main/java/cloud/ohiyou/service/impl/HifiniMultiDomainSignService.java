@@ -119,6 +119,10 @@ public class HifiniMultiDomainSignService implements ISignService {
      * 实际执行指定域名的签到 POST 请求
      */
     private SignResultVO doSignIn(String baseUrl, String cookie) throws Exception {
+        return doSignInInternal(baseUrl, cookie, false);
+    }
+
+    private SignResultVO doSignInInternal(String baseUrl, String cookie, boolean isRetry) throws Exception {
         String userAgent = getRandomUserAgent();
         String signUrl = baseUrl + HifiniConstants.SIGN_PATH;
 
@@ -131,7 +135,7 @@ public class HifiniMultiDomainSignService implements ISignService {
                 .addHeader("Cookie", cookie)
                 .addHeader("User-Agent", userAgent)
                 .addHeader("X-Requested-With", "XMLHttpRequest")
-                .addHeader("Referer", signUrl)
+                .addHeader("Referer", baseUrl + "/")
                 .addHeader("Accept", "application/json, text/javascript, */*; q=0.01")
                 .addHeader("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
                 .build();
@@ -154,6 +158,12 @@ public class HifiniMultiDomainSignService implements ISignService {
             } catch (Exception parseException) {
                 return new SignResultVO(0, responseBody);
             }
+        } catch (Exception e) {
+            if (!isRetry) {
+                logger.warn("域名站点 [{}] 签到首次请求失败: {}, 正在尝试二次重试...", baseUrl, e.getMessage());
+                return doSignInInternal(baseUrl, cookie, true);
+            }
+            throw e;
         }
     }
 
