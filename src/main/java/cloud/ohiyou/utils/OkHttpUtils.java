@@ -66,11 +66,12 @@ public final class OkHttpUtils {
         return new OkHttpClient.Builder()
                 .dispatcher(new Dispatcher(executor))
                 .protocols(java.util.Collections.singletonList(okhttp3.Protocol.HTTP_1_1))
+                .retryOnConnectionFailure(true)
                 .followRedirects(true)
                 .followSslRedirects(true)
-                .connectTimeout(5, TimeUnit.SECONDS)
-                .readTimeout(5, TimeUnit.SECONDS)
-                .writeTimeout(5, TimeUnit.SECONDS)
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(10, TimeUnit.SECONDS)
+                .writeTimeout(10, TimeUnit.SECONDS)
                 .build();
     }
 
