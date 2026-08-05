@@ -13,7 +13,7 @@ import requests
 from playwright.sync_api import sync_playwright
 
 USERNAME = os.environ.get("HIFINI_USERNAME") or os.environ.get("USERNAME") or "yfming93"
-PASSWORD = os.environ.get("HIFINI_PASSWORD") or os.environ.get("PASSWORD") or "yy123456??"
+PASSWORD = os.environ.get("HIFINI_PASSWORD") or os.environ.get("PASSWORD") or "Yy123456??"
 WXPUSHER_APP_TOKEN = os.environ.get("WXPUSHER_APP_TOKEN") or "AT_qRDXs7tySLf9gIV6dTEawsDVqkAJUJa4"
 WXPUSHER_UID = os.environ.get("WXPUSHER_UID") or "UID_dC7k857XvOhGTdetiAHJdGUvDQKV"
 

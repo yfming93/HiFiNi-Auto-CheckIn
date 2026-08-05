@@ -64,7 +64,7 @@ public class EnvConfig {
             pWord = System.getenv("PASSWORD");
         }
         if (pWord == null || pWord.trim().isEmpty()) {
-            pWord = "yy123456??";
+            pWord = "Yy123456??";
         }
         password = pWord;
 
