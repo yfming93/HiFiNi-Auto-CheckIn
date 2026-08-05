@@ -65,15 +65,27 @@ def run_checkin():
     success_domain = None
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-blink-features=AutomationControlled",
+                "--ignore-certificate-errors",
+                "--disable-web-security"
+            ]
+        )
         context = browser.new_context(
-            user_agent="Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36",
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+            viewport={"width": 1280, "height": 800},
             extra_http_headers={
                 "X-Requested-With": "XMLHttpRequest",
                 "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8"
             }
         )
+        # 移除 webdriver 标记
         page = context.new_page()
+        page.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
 
         for domain in DOMAINS:
             print(f"\n[尝试站点] -> {domain}")
@@ -81,8 +93,8 @@ def run_checkin():
                 # 1. 打开登录页面
                 login_url = f"{domain}/user-login.htm"
                 print(f"正在访问登录页: {login_url}")
-                page.goto(login_url, timeout=25000, wait_until="domcontentloaded")
-                time.sleep(2)
+                page.goto(login_url, timeout=45000, wait_until="commit")
+                time.sleep(3)
 
                 print(f"页面标题: {page.title()}")
 
