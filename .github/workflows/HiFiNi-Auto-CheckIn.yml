@@ -11,8 +11,9 @@ on:
 jobs:
   build:
     env:
-      COOKIE: "bbs_sid=8o6rk2oagb88abk9g8jrgb4mf0; Hm_lvt_23819a3dd53d3be5031ca942c6cbaf25=1763692924,1765880049; HMACCOUNT=25F9049004D86C0D; bbs_token=7vqRrkzjffvQ9kTXsDUtmZEh0_2Fzri9UxQMf7O6HF2vb_2BrKjmaPbwa_2B_2FsQW_2FBsQLzbXg7X634MOeXdnhyu7cOr7EriRs_3D; Hm_lpvt_23819a3dd53d3be5031ca942c6cbaf25=1765931887"
-      SERVER_CHAN: "SCT301782T5pl5qKqGpBVSIpceSCjBQt47"
+      COOKIE: ${{ secrets.COOKIE }}
+      HIFIHI_COOKIE: ${{ secrets.HIFIHI_COOKIE }}
+      SERVER_CHAN: ${{ secrets.SERVER_CHAN }}
       DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
       WXWORK_WEBHOOK: ${{ secrets.WXWORK_WEBHOOK }}
       TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
@@ -32,6 +33,7 @@ jobs:
         run: |
           mvn compile
           mvn -B exec:java \
-          -Dexec.mainClass=cloud.ohiyou.Main \
+          -Dexec.mainClass=cloud.ohiyou.HifiniApplication \
           -Dexec.cleanupDaemonThreads=false
-
+    permissions:
+      contents: read    # 允许 checkout 代码   
