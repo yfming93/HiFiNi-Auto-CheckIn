@@ -1,5 +1,6 @@
-# This workflow will build a Java project with Ant
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-ant
+# HiFiNi 磁场自动签到 GitHub Actions 工作流
+# 主引擎: curl (OpenSSL TLS, 绕过 CDN 指纹阻断)
+# 备用引擎: Java OkHttp
 
 name: HiFINI-Auto-CheckIn
 
@@ -30,16 +31,26 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Curl CheckIn Engine (主引擎 - OpenSSL TLS)
+        id: curl_checkin
+        run: bash scripts/curl_checkin.sh
+        continue-on-error: true
+
       - name: Set up JDK 8
+        if: steps.curl_checkin.outcome == 'failure'
         uses: actions/setup-java@v4
         with:
           java-version: '8'
           distribution: 'temurin'
           cache: 'maven'
-      - name: Run Java CheckIn Engine
+
+      - name: Java CheckIn Engine (备用引擎)
+        if: steps.curl_checkin.outcome == 'failure'
         run: |
+          echo "curl 引擎签到失败，启动 Java 备用引擎..."
           mvn clean compile exec:java \
           -Dexec.mainClass="cloud.ohiyou.HifiniApplication" \
           -Dexec.cleanupDaemonThreads=false
     permissions:
-      contents: read    # 允许 checkout 代码   
+      contents: read
