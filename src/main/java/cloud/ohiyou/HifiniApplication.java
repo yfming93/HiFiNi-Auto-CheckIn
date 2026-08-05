@@ -92,11 +92,13 @@ public class HifiniApplication {
         if ("true".equalsIgnoreCase(delayEnv) || "1".equals(delayEnv)) {
             try {
                 int delayMinutes = new java.util.Random().nextInt(15) + 1;
-                logger.info("已开启凌晨随机延时，随机休眠 {} 分钟后开始签到...", delayMinutes);
+                logger.info("定时打卡模式：已开启凌晨随机延时，随机休眠 {} 分钟后开始签到...", delayMinutes);
                 Thread.sleep(delayMinutes * 60 * 1000L);
             } catch (InterruptedException ignored) {
                 Thread.currentThread().interrupt();
             }
+        } else {
+            logger.info("手动触发模式：跳过随机休眠，立即开始签到任务！");
         }
     }
 

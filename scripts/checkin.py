@@ -42,6 +42,15 @@ def push_wxpusher(title: str, content: str):
 def run_checkin():
     print(f"=== 开始全自动无头浏览器签到 (账号: {USERNAME}) ===")
     
+    delay_env = os.environ.get("ENABLE_RANDOM_DELAY", "false").lower()
+    if delay_env in ["true", "1"]:
+        import random
+        delay_mins = random.randint(1, 15)
+        print(f"定时打卡模式：已开启凌晨随机延时，休眠 {delay_mins} 分钟后开始...")
+        time.sleep(delay_mins * 60)
+    else:
+        print("手动触发模式：跳过随机休眠，立即开始全自动无头浏览器签到！")
+
     sign_status = "签到失败"
     coins_info = "未知"
     streak_info = "未知"
