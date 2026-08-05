@@ -93,8 +93,8 @@ def run_checkin():
                 # 1. 打开登录页面
                 login_url = f"{domain}/user-login.htm"
                 print(f"正在访问登录页: {login_url}")
-                page.goto(login_url, timeout=45000, wait_until="commit")
-                time.sleep(3)
+                page.goto(login_url, timeout=8000, wait_until="commit")
+                time.sleep(2)
 
                 print(f"页面标题: {page.title()}")
 
