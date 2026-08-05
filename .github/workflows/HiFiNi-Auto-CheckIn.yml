@@ -34,11 +34,11 @@ jobs:
         with:
           java-version: '8'
           distribution: 'temurin'
+          cache: 'maven'
       - name: Build with Maven
         run: |
-          mvn compile
-          mvn -B exec:java \
-          -Dexec.mainClass=cloud.ohiyou.HifiniApplication \
+          mvn clean compile exec:java \
+          -Dexec.mainClass="cloud.ohiyou.HifiniApplication" \
           -Dexec.cleanupDaemonThreads=false
     permissions:
       contents: read    # 允许 checkout 代码   

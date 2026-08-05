@@ -10,7 +10,7 @@ package cloud.ohiyou.service.push.impl;
 import cloud.ohiyou.config.EnvConfig;
 import cloud.ohiyou.constant.PushPlatform;
 import cloud.ohiyou.service.push.AbstractPushStrategy;
-import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson.JSONObject;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
