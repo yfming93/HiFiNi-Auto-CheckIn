@@ -20,9 +20,19 @@ public final class HifiniConstants {
     public static final String HIFITI_USER_INFO_URL = HIFITI_BASE_URL + "/my.htm";
 
     // ==================== HiFiHi URL 常量 ====================
-    public static final String HIFIHI_BASE_URL = "https://hifihi.com";
+    public static final String HIFIHI_BASE_URL = "https://www.hifihi.com";
     public static final String HIFIHI_SIGN_URL = HIFIHI_BASE_URL + "/sg_sign.htm";
     public static final String HIFIHI_USER_INFO_URL = HIFIHI_BASE_URL + "/my.htm";
+
+    // ==================== 通用多域名配置 ====================
+    public static final List<String> COMMON_DOMAINS = Arrays.asList(
+            "https://www.hifihi.com",
+            "https://www.hifini.net",
+            "https://www.hifini.com.cn"
+    );
+    public static final String LOGIN_PATH = "/user-login.htm";
+    public static final String SIGN_PATH = "/sg_sign.htm";
+    public static final String USER_INFO_PATH = "/my.htm";
 
     // 兼容旧代码
     @Deprecated

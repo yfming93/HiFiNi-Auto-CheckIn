@@ -37,35 +37,38 @@ public class HifiniApplication {
         try {
             EnvConfig config = EnvConfig.get();
 
-            // 执行 HiFiTi 签到
+            // 可选的凌晨随机等待（防止集中整点打卡触发风控）
+            applyRandomDelay();
+
+            // 1. 通用多域名（hifihi.com / hifini.net / hifini.com.cn）切用自动签到
+            if (config.getUsername() != null && !config.getUsername().trim().isEmpty()) {
+                logger.info("===== 通用站点多域名自动登录签到开始 (账号: {}) =====", config.getUsername());
+                ISignService multiDomainService = new cloud.ohiyou.service.impl.HifiniMultiDomainSignService(
+                        config.getDomains(), config.getUsername(), config.getPassword());
+                
+                // 若配置了额外 Cookie 则也传入，否则使用空字符串驱动账号密码登录
+                String initialCookie = config.getHifihiCookie() != null ? config.getHifihiCookie() : "";
+                List<CookieSignResult> multiResults = executeSignIn(
+                        initialCookie, multiDomainService, cookieHandler, executor, "HiFiNi");
+                allResults.addAll(multiResults);
+            }
+
+            // 2. 兼容老的 HiFiTi 站点独立 Cookie 签到（若有配置）
             String hifitiCookies = config.getCookie();
             if (hifitiCookies != null && !hifitiCookies.trim().isEmpty()) {
-                logger.info("===== HiFiTi 站点签到开始 =====");
+                logger.info("===== HiFiTi 站点 Cookie 签到开始 =====");
                 List<CookieSignResult> hifitiResults = executeSignIn(
                         hifitiCookies, new HifitiSignService(), cookieHandler, executor, "HiFiTi");
                 allResults.addAll(hifitiResults);
-            } else {
-                logger.info("未设置 HiFiTi Cookie，跳过该站点签到");
-            }
-
-            // 执行 HiFiHi 签到
-            String hifihiCookies = config.getHifihiCookie();
-            if (hifihiCookies != null && !hifihiCookies.trim().isEmpty()) {
-                logger.info("===== HiFiHi 站点签到开始 =====");
-                List<CookieSignResult> hifihiResults = executeSignIn(
-                        hifihiCookies, new HifihiSignService(), cookieHandler, executor, "HiFiHi");
-                allResults.addAll(hifihiResults);
-            } else {
-                logger.info("未设置 HiFiHi Cookie，跳过该站点签到");
             }
 
             // 检查是否有任何签到任务
             if (allResults.isEmpty()) {
-                logger.warn("未配置任何站点的 Cookie，无签到任务执行");
+                logger.warn("未配置任何账号或 Cookie，无签到任务执行");
                 return;
             }
 
-            // 发布汇总结果
+            // 发布汇总结果（含 WxPusher 及其他配置平台）
             List<IMessagePushStrategy> strategies = PushStrategyFactory.createStrategies();
             ResultPublisher publisher = new ResultPublisher(strategies);
             publisher.publish(allResults);
@@ -76,6 +79,22 @@ public class HifiniApplication {
             executor.shutdown();
             OkHttpUtils.shutdown();
             logger.info("自动签到任务完成");
+        }
+    }
+
+    /**
+     * 凌晨随机打卡延迟，模拟真人行为
+     */
+    private static void applyRandomDelay() {
+        String delayEnv = System.getenv("ENABLE_RANDOM_DELAY");
+        if ("true".equalsIgnoreCase(delayEnv) || "1".equals(delayEnv)) {
+            try {
+                int delayMinutes = new java.util.Random().nextInt(15) + 1;
+                logger.info("已开启凌晨随机延时，随机休眠 {} 分钟后开始签到...", delayMinutes);
+                Thread.sleep(delayMinutes * 60 * 1000L);
+            } catch (InterruptedException ignored) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 

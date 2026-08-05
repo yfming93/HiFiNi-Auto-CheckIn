@@ -65,6 +65,12 @@ public class PushStrategyFactory {
                         && StringUtils.isNotBlank(config.getTgChatId()),
                 () -> new TelegramPushStrategy(client));
 
+        // WxPusher 微信推送
+        registerIfConfigured(strategies,
+                () -> StringUtils.isNotBlank(config.getWxPusherAppToken())
+                        && StringUtils.isNotBlank(config.getWxPusherUid()),
+                () -> new WxPusherPushStrategy(client));
+
         logEnabledPlatforms(strategies);
         return strategies;
     }

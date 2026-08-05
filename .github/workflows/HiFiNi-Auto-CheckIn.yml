@@ -6,11 +6,16 @@ name: HiFINI-Auto-CheckIn
 on:
   workflow_dispatch:
   schedule:
-    - cron: "30 22 * * *" # 北京时间上午06:30
+    - cron: "0 18 * * *" # 北京时间凌晨 02:00 (UTC 18:00)
 
 jobs:
   build:
     env:
+      HIFINI_USERNAME: ${{ secrets.HIFINI_USERNAME }}
+      HIFINI_PASSWORD: ${{ secrets.HIFINI_PASSWORD }}
+      WXPUSHER_APP_TOKEN: ${{ secrets.WXPUSHER_APP_TOKEN }}
+      WXPUSHER_UID: ${{ secrets.WXPUSHER_UID }}
+      ENABLE_RANDOM_DELAY: "true"
       COOKIE: ${{ secrets.COOKIE }}
       HIFIHI_COOKIE: ${{ secrets.HIFIHI_COOKIE }}
       SERVER_CHAN: ${{ secrets.SERVER_CHAN }}
