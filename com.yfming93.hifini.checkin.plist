@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.yfming93.hifini.checkin</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/mingo/allRepos/all_mingo/hifinin_checkin/scripts/curl_checkin.sh</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>HIFIHI_COOKIE</key>
+        <string>bbs_sid=h8p7rq5uqgrl239kfkrkgpnslk; bbs_token=CVRitpISMVbsK1Pb1eil_2FDJ9USMAN7RpQZYVMLRo7ZuKUvzh</string>
+        <key>HIFINI_USERNAME</key>
+        <string>yfming93</string>
+        <key>HIFINI_PASSWORD</key>
+        <string>Yy123456??</string>
+        <key>WXPUSHER_APP_TOKEN</key>
+        <string>AT_qRDXs7tySLf9gIV6dTEawsDVqkAJUJa4</string>
+        <key>WXPUSHER_UID</key>
+        <string>UID_dC7k857XvOhGTdetiAHJdGUvDQKV</string>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+
+    <!-- 每天凌晨 2:00 执行 -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>2</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <!-- 日志输出 -->
+    <key>StandardOutPath</key>
+    <string>/Users/mingo/allRepos/all_mingo/hifinin_checkin/logs/checkin.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/mingo/allRepos/all_mingo/hifinin_checkin/logs/checkin_error.log</string>
+
+    <!-- 如果错过了执行时间（电脑关机/休眠），开机后立即补执行 -->
+    <key>StartInterval</key>
+    <integer>86400</integer>
+</dict>
+</plist>
