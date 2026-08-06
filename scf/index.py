@@ -245,6 +245,96 @@ def process_site(site, username, password, default_cookie):
     return {"site_name": site_name, "success": False, "message": "所有可用域名均登录或签到失败"}
 
 
+def push_pushplus(title, content):
+    """推送到 PushPlus (推送加 - 微信公众号消息直接发送到微信聊天框)"""
+    token = get_env("PUSHPLUS_TOKEN")
+    if not token:
+        return
+
+    print(f"\n[PushPlus] 正在推送到微信...")
+    # 将 \n 替换为 <br/> 适合 HTML/Markdown 渲染
+    html_content = content.replace("\n", "<br/>")
+    payload = json.dumps({
+        "token": token,
+        "title": title,
+        "content": html_content,
+        "template": "html"
+    }, ensure_ascii=False)
+
+    body, _, _ = http_request(
+        "http://www.pushplus.plus/send",
+        method="POST",
+        headers={"Content-Type": "application/json"},
+        data=payload
+    )
+    print(f"[PushPlus] 推送结果: {body}")
+
+
+def push_serverchan(title, content):
+    """推送到 Server酱 (微信公众号聊天框卡片通知)"""
+    sendkey = get_env("SERVER_CHAN")
+    if not sendkey:
+        return
+
+    print(f"\n[Server酱] 正在推送到微信...")
+    payload = urllib.parse.urlencode({
+        "title": title,
+        "desp": content
+    })
+
+    body, _, _ = http_request(
+        f"https://sctapi.ftqq.com/{sendkey}.send",
+        method="POST",
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        data=payload
+    )
+    print(f"[Server酱] 推送结果: {body}")
+
+
+def push_wechat_app(title, content):
+    """推送到 企业微信应用 (通过微信插件，直接在原生微信聊天列表弹出消息)"""
+    corpid = get_env("WECHAT_CORPID")
+    corpsecret = get_env("WECHAT_CORPSECRET")
+    agentid = get_env("WECHAT_AGENTID")
+
+    if not corpid or not corpsecret or not agentid:
+        return
+
+    print(f"\n[企业微信] 正在推送到原生微信...")
+    try:
+        # 1. 获取 access_token
+        token_url = f"https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={corpid}&corpsecret={corpsecret}"
+        resp_body, _, _ = http_request(token_url, method="GET")
+        token_res = json.loads(resp_body)
+        access_token = token_res.get("access_token")
+
+        if not access_token:
+            print(f"[企业微信] 获取 access_token 失败: {resp_body}")
+            return
+
+        # 2. 发送应用消息
+        send_url = f"https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={access_token}"
+        msg_payload = json.dumps({
+            "touser": "@all",
+            "msgtype": "text",
+            "agentid": agentid,
+            "text": {
+                "content": f"{title}\n\n{content}"
+            },
+            "safe": 0
+        }, ensure_ascii=False)
+
+        body, _, _ = http_request(
+            send_url,
+            method="POST",
+            headers={"Content-Type": "application/json"},
+            data=msg_payload
+        )
+        print(f"[企业微信] 推送结果: {body}")
+    except Exception as e:
+        print(f"[企业微信] 推送失败: {e}")
+
+
 def push_wxpusher(title, content):
     """推送到 WxPusher"""
     token = get_env("WXPUSHER_APP_TOKEN", "AT_qRDXs7tySLf9gIV6dTEawsDVqkAJUJa4")
@@ -319,6 +409,9 @@ def main_handler(event, context):
     print(content)
 
     push_wxpusher(title, content)
+    push_pushplus(title, content)
+    push_serverchan(title, content)
+    push_wechat_app(title, content)
 
     print("\n===== 任务完成 =====")
     return {"code": 0 if success_count > 0 else 1}
