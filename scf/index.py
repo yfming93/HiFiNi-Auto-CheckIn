@@ -7,6 +7,7 @@
 import json
 import hashlib
 import os
+import re
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -92,7 +93,11 @@ def try_sign_with_cookie(domain, cookie):
 
         if "签到" in msg or "签过" in msg or "金币" in msg:
             print(f"[✅ 签到成功] {msg}")
-            return {"success": True, "message": msg, "domain": domain}
+            # 签到成功后获取用户详细信息（总金币、连续签到天数）
+            user_extra = fetch_user_info(domain, cookie)
+            result = {"success": True, "message": msg, "domain": domain}
+            result.update(user_extra)
+            return result
         elif "请登录" in msg:
             print(f"[{domain}] Cookie 失效，需要重新登录")
             return {"success": False, "message": msg, "need_login": True}
@@ -103,6 +108,44 @@ def try_sign_with_cookie(domain, cookie):
         if "请登录" in body or "<html" in body.lower():
             return {"success": False, "message": "返回了网页而非 JSON", "need_login": True}
         return {"success": False, "message": body[:200]}
+
+
+def fetch_user_info(domain, cookie):
+    """签到成功后获取用户主页，解析总金币余额和连续签到天数"""
+    extra = {}
+    try:
+        # 请求签到页面获取连续签到天数
+        sign_page_url = domain + "/sg_sign.htm"
+        headers = {
+            "Cookie": cookie,
+            "User-Agent": USER_AGENT,
+            "Referer": domain + "/",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        }
+        body, _, status = http_request(sign_page_url, method="GET", headers=headers)
+        if body and status == 200:
+            # 解析连续签到天数: var s3 = '连续签到N天';
+            streak_match = re.search(r"连续签到(\d+)天", body)
+            if streak_match:
+                extra["streak"] = int(streak_match.group(1))
+                print(f"[用户信息] 连续签到: {extra['streak']} 天")
+
+            # 解析总金币: <span class="text-muted">金币：</span><em ...>数字</em>
+            coin_match = re.search(r'金币[：:]\s*</span>\s*<em[^>]*>(\d+)</em>', body)
+            if coin_match:
+                extra["coins"] = int(coin_match.group(1))
+                print(f"[用户信息] 当前总金币: {extra['coins']}")
+
+            # 解析用户名
+            name_match = re.search(r'class="avatar-1"[^>]*>\s*([^<]+)</a>', body)
+            if name_match:
+                extra["display_name"] = name_match.group(1).strip()
+                print(f"[用户信息] 用户昵称: {extra['display_name']}")
+
+    except Exception as e:
+        print(f"[用户信息] 获取失败（不影响签到）: {e}")
+
+    return extra
 
 
 def try_login(domain, username, password):
@@ -259,13 +302,24 @@ def main_handler(event, context):
     print("\n" + "=" * 50)
     if sign_result and sign_result.get("success"):
         title = f"{SITE_NAME} 自动签到成功通知"
-        content = (
-            f"账号：{username}\\n"
-            f"签到结果：{sign_result['message']}\\n"
-            f"签到域名：{sign_result.get('domain', '')}\\n"
-            f"签到方式：腾讯云 SCF 云函数"
-        )
+        # 构建推送内容，包含金币余额和连续签到天数
+        display_name = sign_result.get('display_name', username)
+        content_lines = [
+            f"账号：{display_name}",
+            f"签到结果：{sign_result['message']}",
+        ]
+        if "coins" in sign_result:
+            content_lines.append(f"当前总金币：{sign_result['coins']}")
+        if "streak" in sign_result:
+            content_lines.append(f"连续签到：{sign_result['streak']} 天")
+        content_lines.append(f"签到域名：{sign_result.get('domain', '')}")
+        content_lines.append(f"签到方式：腾讯云 SCF 云函数")
+        content = "\\n".join(content_lines)
         print(f"✅ 签到成功 - {sign_result['message']}")
+        if "coins" in sign_result:
+            print(f"   当前总金币: {sign_result['coins']}")
+        if "streak" in sign_result:
+            print(f"   连续签到: {sign_result['streak']} 天")
     else:
         title = f"{SITE_NAME} 自动签到失败通知"
         msg = sign_result.get("message", "所有域名均无法访问") if sign_result else "所有域名均无法访问"
