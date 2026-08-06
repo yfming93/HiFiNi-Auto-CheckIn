@@ -285,7 +285,7 @@ def push_email(results, success_count, total_sites, content):
 
     try:
         msg = MIMEText(content, "plain", "utf-8")
-        msg["From"] = f"HiFiSign助手 <{sender}>"
+        msg["From"] = sender
         msg["To"] = receiver
         msg["Subject"] = Header(email_subject, "utf-8")
 
