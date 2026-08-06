@@ -314,7 +314,7 @@ def main_handler(event, context):
             content_lines.append(f"连续签到：{sign_result['streak']} 天")
         content_lines.append(f"签到域名：{sign_result.get('domain', '')}")
         content_lines.append(f"签到方式：腾讯云 SCF 云函数")
-        content = "\\n".join(content_lines)
+        content = "\n".join(content_lines)
         print(f"✅ 签到成功 - {sign_result['message']}")
         if "coins" in sign_result:
             print(f"   当前总金币: {sign_result['coins']}")
@@ -324,8 +324,8 @@ def main_handler(event, context):
         title = f"{SITE_NAME} 自动签到失败通知"
         msg = sign_result.get("message", "所有域名均无法访问") if sign_result else "所有域名均无法访问"
         content = (
-            f"账号：{username}\\n"
-            f"签到结果：{msg}\\n"
+            f"账号：{username}\n"
+            f"签到结果：{msg}\n"
             f"签到方式：腾讯云 SCF 云函数"
         )
         print(f"❌ 签到失败 - {msg}")
