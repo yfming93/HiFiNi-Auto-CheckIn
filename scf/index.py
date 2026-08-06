@@ -16,6 +16,9 @@ import ssl
 import time
 import http.cookiejar
 import http.client
+import smtplib
+from email.mime.text import MIMEText
+from email.header import Header
 
 # ========== 站点分组定义 ==========
 SITES = [
@@ -245,6 +248,61 @@ def process_site(site, username, password, default_cookie):
     return {"site_name": site_name, "success": False, "message": "所有可用域名均登录或签到失败"}
 
 
+def push_email(results, success_count, total_sites, content):
+    """发送邮件通知，大标题精炼呈现所有站点的签到状态与金币余额，一眼即知无需点开详情"""
+    sender = get_env("EMAIL_SENDER", "928289877@qq.com")
+    auth_code = get_env("EMAIL_AUTH_CODE", "jsffuluutsakbdch")
+    receiver = get_env("EMAIL_RECEIVER", sender)
+    smtp_server = get_env("EMAIL_HOST", "smtp.qq.com")
+    smtp_port = int(get_env("EMAIL_PORT", "465"))
+
+    if not sender or not auth_code:
+        print("[邮件推送] 未配置 EMAIL_SENDER 或 EMAIL_AUTH_CODE，跳过推送")
+        return
+
+    # 构建一眼即知的主题大标题
+    site_summaries = []
+    for r in results:
+        s_name = r.get("site_name", "").replace(" 社区", "").replace(" 音乐", "").replace(" 磁场", "")
+        if r.get("success"):
+            info = f"{s_name}:"
+            if "coins" in r:
+                info += f"{r['coins']}金币"
+            else:
+                info += "已签"
+            if "streak" in r:
+                info += f"(连{r['streak']}天)"
+            site_summaries.append(info)
+        else:
+            site_summaries.append(f"{s_name}:失败")
+
+    summary_str = " | ".join(site_summaries)
+    status_tag = "全部成功" if success_count == total_sites else f"{success_count}/{total_sites}成功"
+    email_subject = f"【HiFi签到 {status_tag}】{summary_str}"
+
+    print(f"\n[邮件推送] 正在推送到邮箱 ({receiver})...")
+    print(f"[邮件主题] {email_subject}")
+
+    try:
+        msg = MIMEText(content, "plain", "utf-8")
+        msg["From"] = f"HiFiSign助手 <{sender}>"
+        msg["To"] = receiver
+        msg["Subject"] = Header(email_subject, "utf-8")
+
+        if smtp_port == 465:
+            server = smtplib.SMTP_SSL(smtp_server, smtp_port, timeout=15)
+        else:
+            server = smtplib.SMTP(smtp_server, smtp_port, timeout=15)
+            server.starttls()
+
+        server.login(sender, auth_code)
+        server.sendmail(sender, [receiver], msg.as_string())
+        server.quit()
+        print("[邮件推送] ✅ 邮件发送成功！")
+    except Exception as e:
+        print(f"[邮件推送] ❌ 邮件发送失败: {e}")
+
+
 def push_miaotixing(title, content):
     """推送到 喵提醒 (直接在个人微信聊天框发送原生模板通知)"""
     miao_code = get_env("MIAO_CODE", "tXvDav9")
@@ -340,6 +398,7 @@ def main_handler(event, context):
 
     push_wxpusher(title, content)
     push_miaotixing(title, content)
+    push_email(results, success_count, total_sites, content)
 
     print("\n===== 任务完成 =====")
     return {"code": 0 if success_count > 0 else 1}
