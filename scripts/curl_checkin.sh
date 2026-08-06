@@ -197,6 +197,30 @@ try_login() {
 }
 
 # ========== 函数: 推送到 WxPusher ==========
+push_miaotixing() {
+    local title="$1"
+    local content="$2"
+    local miao_code="${MIAO_CODE:-tXvDav9}"
+
+    if [ -z "${miao_code}" ]; then
+        return
+    fi
+
+    echo "[喵提醒] 正在推送到个人微信 (喵码: ${miao_code})..."
+
+    local full_text="${title}\n\n${content}"
+    local encoded_text
+    encoded_text=$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.stdin.read()))" <<< "${full_text}")
+
+    local result
+    result=$(curl -s -S \
+        --max-time 10 \
+        "https://miaotixing.com/trigger?id=${miao_code}&text=${encoded_text}&type=json" \
+        2>&1) || true
+
+    echo "[喵提醒] 推送结果: ${result}"
+}
+
 push_wxpusher() {
     local title="$1"
     local content="$2"
@@ -278,6 +302,7 @@ else
 fi
 
 push_wxpusher "${title}" "${content}"
+push_miaotixing "${title}" "${content}"
 
 echo ""
 echo "===== curl 签到引擎结束 ====="
