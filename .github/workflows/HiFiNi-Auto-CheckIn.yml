@@ -19,7 +19,7 @@ jobs:
       ENABLE_RANDOM_DELAY: ${{ github.event_name == 'schedule' && 'true' || 'false' }}
       COOKIE: ${{ secrets.COOKIE }}
       HIFIHI_COOKIE: ${{ secrets.HIFIHI_COOKIE }}
-      HIFINI_DOMAINS: "https://www.hifini.com.cn,https://www.hifihi.com,https://www.hifini.net,https://www.hifini.com"
+      HIFINI_DOMAINS: "https://www.hifini.com.cn,https://www.hifihi.com,https://www.hifini.net,https://www.hifiki.com,https://hifiki.com,https://www.hifini.com"
       SERVER_CHAN: ${{ secrets.SERVER_CHAN }}
       DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
       WXWORK_WEBHOOK: ${{ secrets.WXWORK_WEBHOOK }}

@@ -29,7 +29,9 @@ public final class HifiniConstants {
             "https://www.hifini.com.cn",
             "https://www.hifini.com",
             "https://www.hifihi.com",
-            "https://www.hifini.net"
+            "https://www.hifini.net",
+            "https://www.hifiki.com",
+            "https://hifiki.com"
     );
     public static final String LOGIN_PATH = "/user-login.htm";
     public static final String SIGN_PATH = "/sg_sign.htm";

@@ -8,7 +8,7 @@
 set -euo pipefail
 
 # ========== 配置 ==========
-DOMAINS=("https://www.hifini.com.cn" "https://www.hifihi.com" "https://www.hifini.net")
+DOMAINS=("https://www.hifini.com.cn" "https://www.hifihi.com" "https://www.hifini.net" "https://www.hifiki.com" "https://hifiki.com")
 COOKIE="${HIFIHI_COOKIE:-${COOKIE:-}}"
 USERNAME="${HIFINI_USERNAME:-yfming93}"
 PASSWORD="${HIFINI_PASSWORD:-Yy123456??}"

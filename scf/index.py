@@ -20,6 +20,8 @@ DOMAINS = [
     "https://www.hifini.com.cn",
     "https://www.hifihi.com",
     "https://www.hifini.net",
+    "https://www.hifiki.com",
+    "https://hifiki.com",
 ]
 SIGN_PATH = "/sg_sign.htm"
 LOGIN_PATH = "/user-login.htm"
